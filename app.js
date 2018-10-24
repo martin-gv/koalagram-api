@@ -12,7 +12,7 @@ const { generateUsers, generatePhotos } = require("./data/generate");
 
 const authRoutes = require("./routes/auth");
 const likeRoutes = require("./routes/likes");
-// const photoRoutes = require("./routes/photos");
+const commentRoutes = require("./routes/comments");
 
 axios.defaults.headers.common["Authorization"] =
   "Client-ID 98717389339ce6cdfce858cdd027842492d83226dcfe0887aba5e606ca8d19de";
@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/likes", likeRoutes);
-// app.use("/api/photos", photoRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.get("/create_users", async (req, res, next) => {
   try {
