@@ -2,6 +2,17 @@ const db = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const getUserLikes = async function(userID) {
+  return new Promise((resolve, reject) => {
+    sqlLikes = "SELECT * FROM likes WHERE user_id = ?";
+    db.query(sqlLikes, [[userID]], (err, result) => {
+      if (err) throw err;
+      console.log("done with query!");
+      resolve(result);
+    });
+  });
+};
+
 exports.signup = async (req, res) => {
   try {
     const { user } = req.body;
@@ -36,29 +47,35 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body.user;
     const sql = "SELECT * FROM users WHERE username = ?";
-    // Get user by username and check password
-    db.query(sql, [[username]], async (err, result) => {
-      if (err) throw err;
-      const user = result[0];
-      const isPasswordCorrect = await bcrypt.compare(password, user.password);
-      if (isPasswordCorrect) {
-        let token = jwt.sign(
-          { id: user.id, username: user.username },
-          process.env.SECRET_KEY
-        );
-        // Get user's likes and add to response
-        sqlLikes = "SELECT * FROM likes WHERE user_id = ?";
-        db.query(sqlLikes, [[user.id]], (err, result) => {
-          if (err) throw err;
-          user.likes = result;
+    const { token } = req.body;
+    if (req.body.token) {
+      const { username } = jwt.verify(token, process.env.SECRET_KEY);
+      db.query(sql, [[username]], async (err, result) => {
+        if (err) throw err;
+        const user = result[0];
+        user.likes = await getUserLikes(user.id);
+        res.status(200).json({ user });
+      });
+    } else {
+      const { username, password, token } = req.body.user;
+      // Get user by username and check password
+      db.query(sql, [[username]], async (err, result) => {
+        if (err) throw err;
+        const user = result[0];
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (isPasswordCorrect) {
+          let token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.SECRET_KEY
+          );
+          user.likes = await getUserLikes(user.id);
           res.status(200).json({ user, token });
-        });
-      } else {
-        res.status(400).send("Incorrect password");
-      }
-    });
+        } else {
+          res.status(400).send("Incorrect password");
+        }
+      });
+    }
   } catch (err) {
     throw err;
   }
