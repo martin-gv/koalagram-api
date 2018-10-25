@@ -7,7 +7,6 @@ const getUserLikes = async function(userID) {
     sqlLikes = "SELECT * FROM likes WHERE user_id = ?";
     db.query(sqlLikes, [[userID]], (err, result) => {
       if (err) throw err;
-      console.log("done with query!");
       resolve(result);
     });
   });

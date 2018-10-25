@@ -9,6 +9,7 @@ const app = express();
 const db = require("./db");
 
 const { generateUsers, generatePhotos } = require("./data/generate");
+const { getPhotoComments } = require("./handlers/photos");
 
 const authRoutes = require("./routes/auth");
 const likeRoutes = require("./routes/likes");
@@ -65,11 +66,19 @@ app.get("/api/photos", (req, res) => {
   LEFT JOIN likes
   ON photos.id = likes.photo_id
   GROUP BY photos.id
-  LIMIT 21;
+  LIMIT 15;
   `;
-  db.query(sql, (err, results) => {
+  db.query(sql, async (err, result) => {
     if (err) throw err;
-    res.send(results);
+    const allComments = await Promise.all(
+      result.map(x => getPhotoComments(x.id))
+    );
+    const withComments = result.map(x => {
+      const match = allComments.find(y => y.id === x.id);
+      x.comments = match.comments;
+      return x;
+    });
+    res.status(200).json({ photos: withComments });
   });
 });
 
