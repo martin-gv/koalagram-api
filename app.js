@@ -8,6 +8,7 @@ const axios = require("axios");
 const app = express();
 const db = require("./db");
 
+const errorHandler = require("./handlers/errors");
 const { generateUsers, generatePhotos } = require("./data/generate");
 const { getPhotoComments } = require("./handlers/photos");
 
@@ -30,28 +31,28 @@ app.get("/create_users", async (req, res, next) => {
   try {
     const { sql, data } = await generateUsers();
     db.query(sql, [data], (err, result) => {
-      if (err) throw err;
+      if (err) next(err);
       res.status(200).json(result);
     });
   } catch (err) {
-    throw err;
+    next(err);
   }
 });
 
-app.get("/create_photos", async (req, res) => {
+app.get("/create_photos", async (req, res, next) => {
   const userSql = "SELECT * FROM users";
   db.query(userSql, async (err, userRes) => {
-    if (err) throw err;
+    if (err) next(err);
     const { sql, data } = await generatePhotos(userRes);
     db.query(sql, [data], (err, result) => {
-      if (err) throw err;
+      if (err) next(err);
       console.log("New photos: ", typeof result);
       res.status(200).json(result);
     });
   });
 });
 
-app.get("/api/photos", (req, res) => {
+app.get("/api/photos", (req, res, next) => {
   const sql = `
   SELECT
     photos.id,
@@ -69,7 +70,7 @@ app.get("/api/photos", (req, res) => {
   LIMIT 15;
   `;
   db.query(sql, async (err, result) => {
-    if (err) throw err;
+    if (err) next(err);
     const allComments = await Promise.all(
       result.map(x => getPhotoComments(x.id))
     );
@@ -82,23 +83,25 @@ app.get("/api/photos", (req, res) => {
   });
 });
 
-app.get("/users/:id", (req, res) => {
+app.get("/users/:id", (req, res, next) => {
   const id = req.params.id;
   const sql = "SELECT * FROM users WHERE id =" + id;
   db.query(sql, (err, results) => {
-    if (err) throw err;
+    if (err) next(err);
     res.send(results);
   });
 });
 
 // Create DB
-// app.get("/create_db", (req, res) => {
+// app.get("/create_db", (req, res, next) => {
 //   let sql = "CREATE DATABASE koalagram";
 //   db.query(sql, (err, result) => {
-//     if (err) throw err;
+//     if (err) next(err)
 //     console.log(result);
 //     res.send("Database created");
 //   });
 // });
+
+app.use(errorHandler);
 
 app.listen("8080", () => console.log("Server starting! 🖥💻🔥"));

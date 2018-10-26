@@ -16,7 +16,7 @@ exports.getPhotoComments = async function(photoID) {
    WHERE comments.photo_id = ?;
     `;
     db.query(sql, [[photoID]], (err, result) => {
-      if (err) throw err;
+      if (err) reject(err);
       resolve({ id: photoID, comments: result });
     });
   });
