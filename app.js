@@ -33,6 +33,7 @@ app.use("/api/users", userRoutes);
 app.get("/create_users", async (req, res, next) => {
   try {
     const { sql, data } = await generateUsers();
+    console.log(sql, data);
     db.query(sql, [data], (err, result) => {
       if (err) next(err);
       res.status(200).json(result);

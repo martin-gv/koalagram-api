@@ -5,7 +5,7 @@ const faker = require("faker");
 exports.generateUsers = async () => {
   try {
     const requests = [];
-    for (var i = 1; i <= 2; i++) {
+    for (var i = 1; i <= 1; i++) {
       const page = i;
       requests.push(
         axios.get("https://api.unsplash.com/search/photos/", {
@@ -21,11 +21,15 @@ exports.generateUsers = async () => {
     const dataArr = results.reduce((acc, cur) => {
       return [...acc, ...cur.data.results];
     }, []);
-    const data = [];
-    dataArr.forEach(x =>
-      data.push([faker.internet.userName().toLowerCase(), x.urls.small])
+    const data = await Promise.all(
+      dataArr.map(async x => {
+        const username = faker.internet.userName().toLowerCase();
+        const passwordHash = await bcrypt.hash(username + "password", 12);
+        return [username, x.urls.small, passwordHash];
+      })
     );
-    const sql = "INSERT INTO users (username, profile_image_url) VALUES ?";
+    const sql =
+      "INSERT INTO users (username, profile_image_url, password) VALUES ?";
     return { data, sql };
   } catch (err) {
     throw err;
@@ -35,7 +39,7 @@ exports.generateUsers = async () => {
 exports.generatePhotos = async users => {
   try {
     const requests = [];
-    for (var i = 1; i <= 8; i++) {
+    for (var i = 1; i <= 1; i++) {
       const page = i;
       requests.push(
         axios.get("https://api.unsplash.com/search/photos/", {
