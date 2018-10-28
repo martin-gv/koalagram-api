@@ -18,26 +18,34 @@ exports.signup = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(user.password, 12);
     const sql =
       "INSERT INTO users (username, profile_image_url, password) VALUES ?";
-    // to do: check if blank image url so default can be used
     const data = [
       user.username.toLowerCase(),
-      user.profileImageUrl,
+      user.profileImageUrl ||
+        "https://vignette.wikia.nocookie.net/warframe/images/d/df/Doge.jpeg",
       passwordHash
     ];
     db.query(sql, [[data]], (err, result) => {
-      if (err) next(err);
-      db.query(
-        "SELECT * FROM users WHERE id = ?",
-        [[result.insertId]],
-        (err, user) => {
-          if (err) next(err);
-          let token = jwt.sign(
-            { id: user[0].id, username: user[0].username },
-            process.env.SECRET_KEY
-          );
-          res.status(200).json({ user: user[0], token });
-        }
-      );
+      if (err) {
+        next(err);
+      } else {
+        db.query(
+          "SELECT * FROM users WHERE id = ?",
+          [[result.insertId]],
+          async (err, result) => {
+            if (err) {
+              next(err);
+            } else {
+              const user = result[0];
+              let token = jwt.sign(
+                { id: user.id, username: user.username },
+                process.env.SECRET_KEY
+              );
+              user.likes = await getUserLikes(user.id);
+              res.status(200).json({ user, token });
+            }
+          }
+        );
+      }
     });
   } catch (err) {
     next(err);
@@ -51,33 +59,39 @@ exports.login = async (req, res, next) => {
     if (req.body.token) {
       const { username } = jwt.verify(token, process.env.SECRET_KEY);
       db.query(sql, [[username]], async (err, result) => {
-        if (err) next(err);
-        const user = result[0];
-        user.likes = await getUserLikes(user.id);
-        res.status(200).json({ user });
+        if (err) {
+          next(err);
+        } else {
+          const user = result[0];
+          user.likes = await getUserLikes(user.id);
+          res.status(200).json({ user });
+        }
       });
     } else {
       const { username, password } = req.body.user;
       // Get user by username and check password
       db.query(sql, [[username]], async (err, result) => {
-        if (err) next(err);
-        const user = result[0];
-        if (!user) {
-          next({ message: "No user found" });
+        if (err) {
+          next(err);
         } else {
-          const isPasswordCorrect = await bcrypt.compare(
-            password,
-            user.password
-          );
-          if (isPasswordCorrect) {
-            let token = jwt.sign(
-              { id: user.id, username: user.username },
-              process.env.SECRET_KEY
-            );
-            user.likes = await getUserLikes(user.id);
-            res.status(200).json({ user, token });
+          const user = result[0];
+          if (!user) {
+            next({ message: "No user found" });
           } else {
-            next({ message: "Incorrect password" });
+            const isPasswordCorrect = await bcrypt.compare(
+              password,
+              user.password
+            );
+            if (isPasswordCorrect) {
+              let token = jwt.sign(
+                { id: user.id, username: user.username },
+                process.env.SECRET_KEY
+              );
+              user.likes = await getUserLikes(user.id);
+              res.status(200).json({ user, token });
+            } else {
+              next({ message: "Incorrect password" });
+            }
           }
         }
       });

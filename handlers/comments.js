@@ -5,10 +5,17 @@ exports.createComment = async (req, res, next) => {
     const { photoID, userID, comment } = req.body;
     const sql =
       "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-    db.query(sql, [[[photoID, userID, comment]]], (err, result) => {
-      if (err) next(err);
-      res.status(200).json(result);
-    });
+    db.query(
+      sql,
+      [[[photoID, userID, comment.slice(0, 255)]]],
+      (err, result) => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).json(result);
+        }
+      }
+    );
   } catch (err) {
     next(err);
   }
