@@ -5,12 +5,14 @@ const {
   getUnsplashImages,
   createSampleUsers,
   createSamplePhotos,
-  createSampleComments
+  createSampleComments,
+  createSampleLikes
 } = require("../handlers/sampleData");
 
 router.route("/unsplash").get(getUnsplashImages);
 router.route("/users").get(createSampleUsers);
 router.route("/photos").get(createSamplePhotos);
 router.route("/comments").get(createSampleComments);
+router.route("/likes").get(createSampleLikes);
 
 module.exports = router;

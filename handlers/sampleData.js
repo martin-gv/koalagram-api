@@ -112,7 +112,7 @@ exports.createSampleComments = async (req, res, next) => {
   try {
     photos = await query("SELECT * FROM photos");
     users = await query("SELECT * FROM users");
-    const commentsByPhotoArray = photos.map(x => {
+    const commentsByPhotoArrays = photos.map(x => {
       const numComments = Math.floor(Math.random() * 3);
       const commentsForThisPhoto = [];
       for (let i = 0; i < numComments; i++) {
@@ -125,11 +125,38 @@ exports.createSampleComments = async (req, res, next) => {
       }
       return commentsForThisPhoto;
     });
-    const insertData = flattenArray(commentsByPhotoArray);
+    const insertData = flattenArray(commentsByPhotoArrays);
     const sql =
       "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
     const newComments = await query(sql, [insertData]);
     res.status(200).json(newComments);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createSampleLikes = async (req, res, next) => {
+  try {
+    photos = await query("SELECT * FROM photos");
+    users = await query("SELECT * FROM users");
+    const likesByPhotoArrays = photos.map(x => {
+      const numOfLikes = Math.floor(Math.random() * 10);
+      const likesForThisPhoto = [];
+      // to do: include last 10 users, taken out for slice to stay within array length
+      const startingUserIndex = Math.floor(Math.random() * (users.length - 10));
+      for (let i = 0; i < numOfLikes; i++) {
+        const selectedUser = users.slice(
+          startingUserIndex + i,
+          startingUserIndex + i + 1
+        );
+        likesForThisPhoto.push([x.id, selectedUser[0].id]);
+      }
+      return likesForThisPhoto;
+    });
+    const insertData = flattenArray(likesByPhotoArrays);
+    const sql = "INSERT INTO likes (photo_id, user_id) VALUES ?";
+    const newLikes = await query(sql, [insertData]);
+    res.status(200).json(newLikes);
   } catch (err) {
     next(err);
   }
