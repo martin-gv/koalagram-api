@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const faker = require("faker");
 
 const db = require("../db");
+const { query } = require("../helpers/database");
 const { getImages } = require("../data/images");
 
 function flattenArray(arr) {
@@ -93,6 +94,35 @@ exports.createSamplePhotos = async (req, res, next) => {
           return [x.regular_url, users[randUser].id];
         });
         const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
+        db.query(sql, [insertData], (err, result) => {
+          if (err) {
+            next(err);
+          } else {
+            res.status(200).json(result);
+          }
+        });
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createSampleComments = async (req, res, next) => {
+  try {
+    db.query("SELECT * FROM photos", async (err, photos) => {
+      if (err) {
+        next(err);
+      } else {
+        const arraysOfComments = photos.map(x => {
+          const randUser = Math.floor(Math.random() * users.length);
+          return [x.id, users[randUser].id];
+        });
+
+        //   const insertData flattenArray
+
+        const sql =
+          "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
         db.query(sql, [insertData], (err, result) => {
           if (err) {
             next(err);

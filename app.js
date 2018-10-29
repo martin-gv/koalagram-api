@@ -9,7 +9,6 @@ const app = express();
 const db = require("./db");
 
 const errorHandler = require("./handlers/errors");
-const { generatePhotos } = require("./data/generate");
 const { getPhotoComments } = require("./handlers/photos");
 const { loginRequired } = require("./middleware/middleware");
 
