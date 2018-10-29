@@ -2,25 +2,8 @@ const axios = require("axios");
 const bcrypt = require("bcrypt");
 const faker = require("faker");
 
-exports.generateUsers = async () => {
+exports.generateUsers = async max => {
   try {
-    const requests = [];
-    for (var i = 1; i <= 1; i++) {
-      const page = i;
-      requests.push(
-        axios.get("https://api.unsplash.com/search/photos/", {
-          params: {
-            query: "portrait",
-            per_page: 30,
-            page
-          }
-        })
-      );
-    }
-    const results = await Promise.all(requests);
-    const dataArr = results.reduce((acc, cur) => {
-      return [...acc, ...cur.data.results];
-    }, []);
     const data = await Promise.all(
       dataArr.map(async x => {
         const username = faker.internet.userName().toLowerCase();
@@ -28,9 +11,6 @@ exports.generateUsers = async () => {
         return [username, x.urls.small, passwordHash];
       })
     );
-    const sql =
-      "INSERT INTO users (username, profile_image_url, password) VALUES ?";
-    return { data, sql };
   } catch (err) {
     throw err;
   }

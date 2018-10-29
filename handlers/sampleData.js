@@ -1,5 +1,9 @@
 const axios = require("axios");
+const bcrypt = require("bcrypt");
+const faker = require("faker");
+
 const db = require("../db");
+const { getImages } = require("../data/images");
 
 function flattenArray(arr) {
   return arr.reduce((acc, cur) => {
@@ -10,7 +14,7 @@ function flattenArray(arr) {
 exports.getUnsplashImages = async (req, res, next) => {
   try {
     //  const { searchTerm, numPages, startPage } = req.body;
-   //  done: portrait 4 pages, start 1; animals 40 pages, start 1
+    //  done: portrait 4 pages, start 1; animals 40 pages, start 1
     const searchTerm = "animals",
       numPages = 40,
       startPage = 1;
@@ -48,6 +52,30 @@ exports.getUnsplashImages = async (req, res, next) => {
         message: "Required parameters are searchTerm, numPages, and startPage"
       });
     }
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createSampleUsers = async (req, res, next) => {
+  try {
+    const images = await getImages("portrait");
+    const insertData = await Promise.all(
+      images.map(async x => {
+        const username = faker.internet.userName().toLowerCase();
+        const passwordHash = await bcrypt.hash(username + "password", 12);
+        return [username, x.small_url, passwordHash];
+      })
+    );
+    const sql =
+      "INSERT INTO users (username, profile_image_url, password) VALUES ?";
+    db.query(sql, [insertData], (err, result) => {
+      if (err) {
+        next(err);
+      } else {
+        res.status(200).json(result);
+      }
+    });
   } catch (err) {
     next(err);
   }
