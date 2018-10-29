@@ -2,20 +2,6 @@ const axios = require("axios");
 const bcrypt = require("bcrypt");
 const faker = require("faker");
 
-exports.generateUsers = async max => {
-  try {
-    const data = await Promise.all(
-      dataArr.map(async x => {
-        const username = faker.internet.userName().toLowerCase();
-        const passwordHash = await bcrypt.hash(username + "password", 12);
-        return [username, x.urls.small, passwordHash];
-      })
-    );
-  } catch (err) {
-    throw err;
-  }
-};
-
 exports.generatePhotos = async users => {
   try {
     const requests = [];

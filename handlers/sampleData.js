@@ -80,3 +80,29 @@ exports.createSampleUsers = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.createSamplePhotos = async (req, res, next) => {
+  try {
+    console.log(db);
+    res.send(db);
+    //  const images = await getImages("animals");
+    //  const insertData = await Promise.all(
+    //    images.map(async x => {
+    //      const username = faker.internet.userName().toLowerCase();
+    //      const passwordHash = await bcrypt.hash(username + "password", 12);
+    //      return [username, x.small_url, passwordHash];
+    //    })
+    //  );
+    //  const sql =
+    //    "INSERT INTO photos (username, profile_image_url, password) VALUES ?";
+    //  db.query(sql, [insertData], (err, result) => {
+    //    if (err) {
+    //      next(err);
+    //    } else {
+    //      res.status(200).json(result);
+    //    }
+    //  });
+  } catch (err) {
+    next(err);
+  }
+};

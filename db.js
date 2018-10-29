@@ -12,6 +12,4 @@ connection.connect(err => {
   console.log("MySQL connected...");
 });
 
-// const query = connection.query
-
 module.exports = connection;
