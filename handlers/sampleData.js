@@ -110,28 +110,26 @@ exports.createSamplePhotos = async (req, res, next) => {
 
 exports.createSampleComments = async (req, res, next) => {
   try {
-    db.query("SELECT * FROM photos", async (err, photos) => {
-      if (err) {
-        next(err);
-      } else {
-        const arraysOfComments = photos.map(x => {
-          const randUser = Math.floor(Math.random() * users.length);
-          return [x.id, users[randUser].id];
-        });
-
-        //   const insertData flattenArray
-
-        const sql =
-          "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-        db.query(sql, [insertData], (err, result) => {
-          if (err) {
-            next(err);
-          } else {
-            res.status(200).json(result);
-          }
-        });
+    photos = await query("SELECT * FROM photos");
+    users = await query("SELECT * FROM users");
+    const commentsByPhotoArray = photos.map(x => {
+      const numComments = Math.floor(Math.random() * 3);
+      const commentsForThisPhoto = [];
+      for (let i = 0; i < numComments; i++) {
+        const randUser = Math.floor(Math.random() * users.length);
+        commentsForThisPhoto.push([
+          x.id,
+          users[randUser].id,
+          faker.lorem.sentence() + " #" + faker.lorem.word()
+        ]);
       }
+      return commentsForThisPhoto;
     });
+    const insertData = flattenArray(commentsByPhotoArray);
+    const sql =
+      "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
+    const newComments = await query(sql, [insertData]);
+    res.status(200).json(newComments);
   } catch (err) {
     next(err);
   }
