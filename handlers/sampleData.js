@@ -90,7 +90,7 @@ exports.createSamplePhotos = async (req, res, next) => {
         const images = await getImages("animals");
         const insertData = images.map(x => {
           const randUser = Math.floor(Math.random() * users.length);
-          return [x.urls.regular, users[randUser].id];
+          return [x.regular_url, users[randUser].id];
         });
         const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
         db.query(sql, [insertData], (err, result) => {

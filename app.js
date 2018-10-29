@@ -32,19 +32,6 @@ app.use("/api/comments", loginRequired, commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/sample-data", sampleDataRoutes);
 
-app.get("/create_photos", async (req, res, next) => {
-  const userSql = "SELECT * FROM users";
-  db.query(userSql, async (err, userRes) => {
-    if (err) next(err);
-    const { sql, data } = await generatePhotos(userRes);
-    db.query(sql, [data], (err, result) => {
-      if (err) next(err);
-      console.log("New photos: ", typeof result);
-      res.status(200).json(result);
-    });
-  });
-});
-
 app.get("/api/photos", (req, res, next) => {
   const sql = `
   SELECT
@@ -59,9 +46,9 @@ app.get("/api/photos", (req, res, next) => {
   ON photos.user_id = users.id
   LEFT JOIN likes
   ON photos.id = likes.photo_id
-  GROUP BY photos.id;
+  GROUP BY photos.id
+  LIMIT 30;
   `;
-  // LIMIT 15;
   db.query(sql, async (err, result) => {
     if (err) {
       next(err);
