@@ -83,25 +83,25 @@ exports.createSampleUsers = async (req, res, next) => {
 
 exports.createSamplePhotos = async (req, res, next) => {
   try {
-    console.log(db);
-    res.send(db);
-    //  const images = await getImages("animals");
-    //  const insertData = await Promise.all(
-    //    images.map(async x => {
-    //      const username = faker.internet.userName().toLowerCase();
-    //      const passwordHash = await bcrypt.hash(username + "password", 12);
-    //      return [username, x.small_url, passwordHash];
-    //    })
-    //  );
-    //  const sql =
-    //    "INSERT INTO photos (username, profile_image_url, password) VALUES ?";
-    //  db.query(sql, [insertData], (err, result) => {
-    //    if (err) {
-    //      next(err);
-    //    } else {
-    //      res.status(200).json(result);
-    //    }
-    //  });
+    db.query("SELECT * FROM users", async (err, users) => {
+      if (err) {
+        next(err);
+      } else {
+        const images = await getImages("animals");
+        const insertData = images.map(x => {
+          const randUser = Math.floor(Math.random() * users.length);
+          return [x.urls.regular, users[randUser].id];
+        });
+        const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
+        db.query(sql, [insertData], (err, result) => {
+          if (err) {
+            next(err);
+          } else {
+            res.status(200).json(result);
+          }
+        });
+      }
+    });
   } catch (err) {
     next(err);
   }
