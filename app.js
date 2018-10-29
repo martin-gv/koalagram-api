@@ -17,6 +17,7 @@ const authRoutes = require("./routes/auth");
 const likeRoutes = require("./routes/likes");
 const commentRoutes = require("./routes/comments");
 const userRoutes = require("./routes/users");
+const sampleDataRoutes = require("./routes/sampleData");
 
 axios.defaults.headers.common["Authorization"] =
   "Client-ID 98717389339ce6cdfce858cdd027842492d83226dcfe0887aba5e606ca8d19de";
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/likes", loginRequired, likeRoutes);
 app.use("/api/comments", loginRequired, commentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/sample-data", sampleDataRoutes);
 
 app.get("/create_users", async (req, res, next) => {
   try {
@@ -70,9 +72,9 @@ app.get("/api/photos", (req, res, next) => {
   ON photos.user_id = users.id
   LEFT JOIN likes
   ON photos.id = likes.photo_id
-  GROUP BY photos.id
-  LIMIT 15;
+  GROUP BY photos.id;
   `;
+  // LIMIT 15;
   db.query(sql, async (err, result) => {
     if (err) {
       next(err);
