@@ -16,17 +16,18 @@ exports.getUnsplashImages = async (req, res, next) => {
   try {
     //  const { searchTerm, numPages, startPage } = req.body;
     //  done: portrait 4 pages, start 1; animals 40 pages, start 1
+    //  done: portrait 4 pages, start 5; animals 40 pages, start 41
     const searchTerm = "animals",
       numPages = 40,
-      startPage = 1;
+      startPage = 41;
     if (searchTerm && numPages && startPage) {
       const requests = [];
       for (var i = startPage; i <= startPage + numPages - 1; i++) {
-        requests.push(
-          axios.get("https://api.unsplash.com/search/photos/", {
-            params: { query: searchTerm, per_page: 30, page: i }
-          })
-        );
+        //   requests.push(
+        //     axios.get("https://api.unsplash.com/search/photos/", {
+        //       params: { query: searchTerm, per_page: 30, page: i }
+        //     })
+        //   );
       }
       const resolvedPromises = await Promise.all(requests);
       const resultsArr = resolvedPromises.map(x => x.data.results);
@@ -41,13 +42,13 @@ exports.getUnsplashImages = async (req, res, next) => {
       ]);
       const sql =
         "INSERT INTO images (type, raw_url, full_url, regular_url, small_url, thumb_url) VALUES ?";
-      db.query(sql, [insertData], (err, result) => {
-        if (err) {
-          next(err);
-        } else {
-          res.status(200).json({ result });
-        }
-      });
+      // db.query(sql, [insertData], (err, result) => {
+      //   if (err) {
+      //     next(err);
+      //   } else {
+      //     res.status(200).json({ result });
+      //   }
+      // });
     } else {
       next({
         message: "Required parameters are searchTerm, numPages, and startPage"
@@ -135,21 +136,32 @@ exports.createSampleComments = async (req, res, next) => {
   }
 };
 
+function randomUniqueUsers(num, users, arr = []) {
+  if (arr.length === num) {
+    //  return arr;
+    return;
+  } else {
+    const index = Math.floor(Math.random() * users.length);
+    const randUser = users[index];
+    if (!arr.find(x => x.id === randUser.id)) {
+      arr.push(randUser);
+    }
+    randomUniqueUsers(num, users, arr);
+  }
+}
+
 exports.createSampleLikes = async (req, res, next) => {
   try {
     photos = await query("SELECT * FROM photos");
     users = await query("SELECT * FROM users");
     const likesByPhotoArrays = photos.map(x => {
-      const numOfLikes = Math.floor(Math.random() * 10);
+      const numOfLikes = Math.floor(Math.random() * 15);
       const likesForThisPhoto = [];
-      // to do: include last 10 users, taken out for slice to stay within array length
-      const startingUserIndex = Math.floor(Math.random() * (users.length - 10));
+      const usersThatLikeThisPhoto = [];
+      // const usersThatLikeThisPhoto = randomUniqueUsers(numOfLikes, users); why doesn't this work?
+      randomUniqueUsers(numOfLikes, users, usersThatLikeThisPhoto);
       for (let i = 0; i < numOfLikes; i++) {
-        const selectedUser = users.slice(
-          startingUserIndex + i,
-          startingUserIndex + i + 1
-        );
-        likesForThisPhoto.push([x.id, selectedUser[0].id]);
+        likesForThisPhoto.push([x.id, usersThatLikeThisPhoto[i].id]);
       }
       return likesForThisPhoto;
     });
