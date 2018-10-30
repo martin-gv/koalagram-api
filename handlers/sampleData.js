@@ -1,6 +1,7 @@
 const axios = require("axios");
 const bcrypt = require("bcrypt");
 const faker = require("faker");
+const moment = require("moment");
 
 const db = require("../db");
 const { query } = require("../helpers/database");
@@ -90,11 +91,16 @@ exports.createSamplePhotos = async (req, res, next) => {
         next(err);
       } else {
         const images = await getImages("animals");
+        const date = moment();
         const insertData = images.map(x => {
           const randUser = Math.floor(Math.random() * users.length);
-          return [x.regular_url, users[randUser].id];
+          const randSeconds = Math.floor(Math.random() * 3 * 60 * 60);
+          //  note: moment functions mutate original object
+          const createdAt = date.subtract(randSeconds, "seconds").toDate();
+          return [x.regular_url, users[randUser].id, createdAt];
         });
-        const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
+        const sql =
+          "INSERT INTO photos (image_url, user_id, created_at) VALUES ?";
         db.query(sql, [insertData], (err, result) => {
           if (err) {
             next(err);
@@ -136,9 +142,8 @@ exports.createSampleComments = async (req, res, next) => {
   }
 };
 
-function randomUniqueUsers(num, users, arr = []) {
+function randomUniqueUsers(num, users, arr) {
   if (arr.length === num) {
-    //  return arr;
     return;
   } else {
     const index = Math.floor(Math.random() * users.length);

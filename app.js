@@ -37,6 +37,7 @@ app.get("/api/photos", (req, res, next) => {
     photos.id,
     photos.user_id,
     photos.image_url,
+    photos.created_at,
     users.username,
     users.profile_image_url,
     COUNT(likes.id) AS likes
