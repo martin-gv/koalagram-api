@@ -1,4 +1,3 @@
-const axios = require("axios");
 const bcrypt = require("bcrypt");
 const faker = require("faker");
 const moment = require("moment");
@@ -120,7 +119,7 @@ exports.createSampleComments = async (req, res, next) => {
     photos = await query("SELECT * FROM photos");
     users = await query("SELECT * FROM users");
     const commentsByPhotoArrays = photos.map(x => {
-      const numComments = Math.floor(Math.random() * 3);
+      const numComments = Math.floor(Math.random() * 5);
       const commentsForThisPhoto = [];
       for (let i = 0; i < numComments; i++) {
         const randUser = Math.floor(Math.random() * users.length);
@@ -160,7 +159,7 @@ exports.createSampleLikes = async (req, res, next) => {
     photos = await query("SELECT * FROM photos");
     users = await query("SELECT * FROM users");
     const likesByPhotoArrays = photos.map(x => {
-      const numOfLikes = Math.floor(Math.random() * 15);
+      const numOfLikes = Math.floor(Math.random() * 12);
       const likesForThisPhoto = [];
       const usersThatLikeThisPhoto = [];
       // const usersThatLikeThisPhoto = randomUniqueUsers(numOfLikes, users); why doesn't this work?

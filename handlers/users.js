@@ -1,5 +1,5 @@
 const db = require("../db");
-const { getPhotoComments } = require("./photos");
+const { getPhotoComments } = require("./comments");
 
 exports.getUserPhotos = async (req, res, next) => {
   try {
