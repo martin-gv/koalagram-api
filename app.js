@@ -32,18 +32,6 @@ app.use("/api/likes", loginRequired, likeRoutes);
 app.use("/api/comments", loginRequired, commentRoutes);
 app.use("/api/sample-data", sampleDataRoutes);
 
-app.get("/users/:id", (req, res, next) => {
-  const id = req.params.id;
-  const sql = "SELECT * FROM users WHERE id =" + id;
-  db.query(sql, (err, results) => {
-    if (err) {
-      next(err);
-    } else {
-      res.send(results);
-    }
-  });
-});
-
 // Create DB
 // app.get("/create_db", (req, res, next) => {
 //   let sql = "CREATE DATABASE koalagram";
