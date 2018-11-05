@@ -4,9 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const axios = require("axios");
-
+const multer = require("multer");
 const app = express();
-const db = require("./db");
 
 const errorHandler = require("./handlers/errors");
 const { loginRequired } = require("./middleware/middleware");
@@ -22,11 +21,34 @@ axios.defaults.headers.common["Authorization"] =
   "Client-ID 98717389339ce6cdfce858cdd027842492d83226dcfe0887aba5e606ca8d19de";
 // "Client-ID " + process.env.UNSPLASH;
 
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, +new Date() + "-" + file.originalname);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 app.use(cors());
 app.use(bodyParser.json());
+app.use(multer({ storage: imageStorage, fileFilter }).single("imageFile"));
+app.use("/images", express.static("images"));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/photos", photoRoutes)
+app.use("/api/photos", photoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/likes", loginRequired, likeRoutes);
 app.use("/api/comments", loginRequired, commentRoutes);

@@ -11,8 +11,10 @@ exports.loginRequired = function(req, res, next) {
     const secretKey = process.env.SECRET_KEY;
     jwt.verify(token, secretKey, function(err, payload) {
       if (payload) {
+        res.locals.tokenPayload = payload;
         return next();
       } else {
+        // is this correct? won't this run the next middleware function?
         return next(authError);
       }
     });

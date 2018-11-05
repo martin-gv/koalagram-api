@@ -76,3 +76,44 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.postNewPhoto = async (req, res, next) => {
+  try {
+    const { comment } = req.body;
+    const { id } = res.locals.tokenPayload;
+    const image = req.file;
+
+    if (!image) next({ message: "No image file uploaded" });
+
+    const insertData = [image.path, id];
+    const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
+    const result = await query(sql, [[insertData]]);
+    const photoID = result.insertId;
+
+    if (comment) {
+      const sql =
+        "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
+      const commentResult = await query(sql, [[[photoID, id, comment]]]);
+    }
+
+    const newPhotoSql = `
+      SELECT
+        photos.id,
+        photos.user_id,
+        photos.image_url,
+        photos.created_at,
+        users.username,
+        users.profile_image_url,
+      0 AS likes
+      FROM photos
+      INNER JOIN users
+      ON photos.user_id = users.id
+      AND photos.id = ? ;`;
+    const newPhotoResult = await query(newPhotoSql, [[photoID]]);
+    const comments = await getPhotoComments(photoID);
+    newPhotoResult[0].comments = comments.comments;
+    res.status(200).json({ newPhoto: newPhotoResult[0] });
+  } catch (err) {
+    next(err);
+  }
+};
