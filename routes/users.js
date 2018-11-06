@@ -5,7 +5,8 @@ const { loginRequired } = require("../middleware/middleware");
 const {
   getUserPhotos,
   getPhotosLikedByUser,
-  postNewPhoto
+  postNewPhoto,
+  updateUser
 } = require("../handlers/users");
 
 // posting to username is not needed as parameter is not used
@@ -13,7 +14,9 @@ const {
 router
   .route("/:username")
   .get(getUserPhotos)
-  .post(loginRequired, postNewPhoto);
+  .post(loginRequired, postNewPhoto)
+  .put(loginRequired, updateUser);
+
 router.route("/:username/likes").get(getPhotosLikedByUser);
 
 module.exports = router;

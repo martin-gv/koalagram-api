@@ -1,6 +1,27 @@
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
 
+exports.updateUser = async (req, res, next) => {
+  try {
+    const { bio } = req.body;
+    const { id } = res.locals.tokenPayload;
+    const image = req.file;
+
+    console.log(bio, id, image);
+
+    let sql = "UPDATE users SET bio = ? WHERE id = ?";
+    let insertData = [[bio], [id]];
+    if (image) {
+      sql = "UPDATE users SET profile_image_url = ?, bio = ? WHERE id = ?";
+      insertData = [[image.path], [bio], [id]];
+    }
+    await query(sql, insertData);
+    res.status(200).json({ image: image ? image.path : null });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Gets photos posted by a user, plus the user's info
 exports.getUserPhotos = async (req, res, next) => {
   try {
@@ -9,6 +30,7 @@ exports.getUserPhotos = async (req, res, next) => {
       SELECT
          photos.id,
          photos.user_id,
+         photos.created_at,
          users.username,
          COUNT(likes.id) AS likes,
          photos.image_url,
@@ -19,7 +41,9 @@ exports.getUserPhotos = async (req, res, next) => {
       LEFT JOIN likes
       ON photos.id = likes.photo_id
       WHERE users.username = ?
-      GROUP BY photos.id;`;
+      GROUP BY photos.id
+      ORDER BY photos.id DESC;
+      `;
     const photos = await query(sql, [[username]]);
     const allComments = await Promise.all(
       photos.map(x => getPhotoComments(x.id))
@@ -30,7 +54,7 @@ exports.getUserPhotos = async (req, res, next) => {
       return x;
     });
     const sqlUser =
-      "SELECT id, username, profile_image_url FROM users WHERE username = ?";
+      "SELECT id, username, profile_image_url, bio   FROM users WHERE username = ?";
     const user = await query(sqlUser, [[username]]);
     res.status(200).json({ user, photos: withComments });
   } catch (err) {
@@ -46,6 +70,7 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
       SELECT
           likes.photo_id AS id,
           photos.user_id,
+          photos.created_at,
           posted_by.username AS username,
           COUNT(total_likes.id) AS likes,
           photos.image_url,
@@ -60,7 +85,8 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
       ON photos.user_id = posted_by.id
       LEFT JOIN likes AS total_likes
       ON likes.photo_id = total_likes.photo_id 
-      GROUP BY likes.photo_id;
+      GROUP BY likes.photo_id
+      ORDER BY photos.id DESC;
     `;
     const photos = await query(sql, [[username]]);
     const allComments = await Promise.all(

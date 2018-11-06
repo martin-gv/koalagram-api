@@ -18,6 +18,7 @@ exports.getPhotos = (req, res, next) => {
   LEFT JOIN likes
   ON photos.id = likes.photo_id
   GROUP BY photos.id
+  ORDER BY photos.id DESC
   LIMIT 30;
   `;
   db.query(sql, async (err, result) => {
@@ -57,7 +58,8 @@ exports.getPhotosByHashtag = async (req, res, next) => {
     AND comments.comment_text LIKE "%#${hashtag}" 
     LEFT JOIN likes
     ON photos.id = likes.photo_id
-    GROUP BY photos.id;
+    GROUP BY photos.id
+    ORDER BY photos.id DESC;
     `;
     const photos = await query(sql);
     const allComments = await Promise.all(

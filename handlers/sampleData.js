@@ -65,12 +65,13 @@ exports.createSampleUsers = async (req, res, next) => {
     const insertData = await Promise.all(
       images.map(async x => {
         const username = faker.internet.userName().toLowerCase();
+        const bio = faker.lorem.paragraph().slice(0, 255);
         const passwordHash = await bcrypt.hash(username + "password", 12);
-        return [username, x.small_url, passwordHash];
+        return [username, x.small_url, bio, passwordHash];
       })
     );
     const sql =
-      "INSERT INTO users (username, profile_image_url, password) VALUES ?";
+      "INSERT INTO users (username, profile_image_url, bio, password) VALUES ?";
     db.query(sql, [insertData], (err, result) => {
       if (err) {
         next(err);
@@ -100,7 +101,7 @@ exports.createSamplePhotos = async (req, res, next) => {
         });
         const sql =
           "INSERT INTO photos (image_url, user_id, created_at) VALUES ?";
-        db.query(sql, [insertData], (err, result) => {
+        db.query(sql, [insertData.reverse()], (err, result) => {
           if (err) {
             next(err);
           } else {
