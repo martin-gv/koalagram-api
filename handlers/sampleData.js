@@ -18,7 +18,7 @@ exports.getUnsplashImages = async (req, res, next) => {
     //  done: portrait 4 pages, start 1; animals 40 pages, start 1
     //  done: portrait 4 pages, start 5; animals 40 pages, start 41
     const searchTerm = "portrait",
-      numPages = 4,
+      numPages = 1,
       startPage = 1;
     if (searchTerm && numPages && startPage) {
       const requests = [];
