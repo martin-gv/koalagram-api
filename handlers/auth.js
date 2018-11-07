@@ -14,16 +14,19 @@ const getUserLikes = async function(userID) {
 
 exports.signup = async (req, res, next) => {
   try {
-    const { user } = req.body;
-    const passwordHash = await bcrypt.hash(user.password, 12);
+    const { username, password } = req.body;
+    const image = req.file;
+    const passwordHash = await bcrypt.hash(password, 12);
+
     const sql =
       "INSERT INTO users (username, profile_image_url, password) VALUES ?";
     const data = [
-      user.username.toLowerCase(),
-      user.profileImageUrl ||
+      username.toLowerCase(),
+      (image && image.path) ||
         "https://vignette.wikia.nocookie.net/warframe/images/d/df/Doge.jpeg",
       passwordHash
     ];
+
     db.query(sql, [[data]], (err, result) => {
       if (err) {
         next(err);

@@ -7,8 +7,6 @@ exports.updateUser = async (req, res, next) => {
     const { id } = res.locals.tokenPayload;
     const image = req.file;
 
-    console.log(bio, id, image);
-
     let sql = "UPDATE users SET bio = ? WHERE id = ?";
     let insertData = [[bio], [id]];
     if (image) {
