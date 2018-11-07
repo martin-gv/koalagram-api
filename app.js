@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const axios = require("axios");
 const multer = require("multer");
 const app = express();
+const PORT = process.env.PORT || 8080;
 
 const errorHandler = require("./handlers/errors");
 const { loginRequired } = require("./middleware/middleware");
@@ -69,4 +70,4 @@ app.use("/api/sample-data", sampleDataRoutes);
 
 app.use(errorHandler);
 
-app.listen("8080", () => console.log("Server starting! 🖥💻🔥"));
+app.listen(PORT, () => console.log("Server starting! 🖥💻🔥"));
