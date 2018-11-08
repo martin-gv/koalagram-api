@@ -22,12 +22,12 @@ const connection = mysql.createPool({
 //   database: "koalagram"
 // });
 
-connection.connect(err => {
-  if (err) {
-    console.log(err);
-    throw err;
-  }
-  console.log("MySQL connected...");
-});
+// connection.connect(err => {
+//   if (err) {
+//     console.log(err);
+//     throw err;
+//   }
+//   console.log("MySQL connected...");
+// });
 
 module.exports = connection;
