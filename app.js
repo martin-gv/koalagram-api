@@ -44,6 +44,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 app.use(cors());
+app.use(bodyParser({ limit: "5mb" }));
 app.use(bodyParser.json());
 app.use(multer({ storage: imageStorage, fileFilter }).single("imageFile"));
 app.use("/images", express.static("images"));
