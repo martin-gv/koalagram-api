@@ -1,5 +1,13 @@
+const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
+
+const config = {
+  host: "us-cdbr-iron-east-01.cleardb.net",
+  user: "b57e642d15cd4c",
+  password: "76ca1458",
+  database: "heroku_d169760d6be1801"
+};
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -111,13 +119,17 @@ exports.postNewPhoto = async (req, res, next) => {
 
     const insertData = [image.path, id];
     const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
-    const result = await query(sql, [[insertData]]);
+
+    var db = mysql.createConnection(config);
+    db.connect();
+
+    const result = await query(sql, [[insertData]], db);
     const photoID = result.insertId;
 
     if (comment) {
       const sql =
         "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-      const commentResult = await query(sql, [[[photoID, id, comment]]]);
+      const commentResult = await query(sql, [[[photoID, id, comment]]], db);
     }
 
     const newPhotoSql = `
@@ -133,10 +145,11 @@ exports.postNewPhoto = async (req, res, next) => {
       INNER JOIN users
       ON photos.user_id = users.id
       AND photos.id = ? ;`;
-    const newPhotoResult = await query(newPhotoSql, [[photoID]]);
-    const comments = await getPhotoComments(photoID);
+    const newPhotoResult = await query(newPhotoSql, [[photoID]], db);
+    const comments = await getPhotoComments(photoID, db);
     newPhotoResult[0].comments = comments.comments;
     res.status(200).json({ newPhoto: newPhotoResult[0] });
+    db.end();
   } catch (err) {
     next(err);
   }

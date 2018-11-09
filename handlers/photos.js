@@ -1,6 +1,14 @@
-const db = require("../db");
+// const db = require("../db");
+const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
+
+const config = {
+  host: "us-cdbr-iron-east-01.cleardb.net",
+  user: "b57e642d15cd4c",
+  password: "76ca1458",
+  database: "heroku_d169760d6be1801"
+};
 
 exports.getPhotos = async (req, res, next) => {
   try {
@@ -22,13 +30,15 @@ exports.getPhotos = async (req, res, next) => {
   ORDER BY photos.id DESC
   LIMIT 30;
   `;
+    var db = mysql.createConnection(config);
+    db.connect();
     db.query(sql, async (err, result) => {
       try {
         if (err) {
           next(err);
         } else {
           const allComments = await Promise.all(
-            result.map(x => getPhotoComments(x.id))
+            result.map(x => getPhotoComments(x.id, db))
           );
           const withComments = result.map(x => {
             const match = allComments.find(y => y.id === x.id);

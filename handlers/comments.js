@@ -1,4 +1,12 @@
-const db = require("../db");
+// const db = require("../db");
+const mysql = require("mysql");
+
+const config = {
+  host: "us-cdbr-iron-east-01.cleardb.net",
+  user: "b57e642d15cd4c",
+  password: "76ca1458",
+  database: "heroku_d169760d6be1801"
+};
 
 exports.createComment = async (req, res, next) => {
   try {
@@ -29,7 +37,7 @@ exports.deleteComment = async (req, res, next) => {
   }
 };
 
-exports.getPhotoComments = async photoID => {
+exports.getPhotoComments = async (photoID, db) => {
   return new Promise((resolve, reject) => {
     sql = `
     SELECT
@@ -47,7 +55,6 @@ exports.getPhotoComments = async photoID => {
     db.query(sql, [[photoID]], (err, result) => {
       if (err) reject(err);
       resolve({ id: photoID, comments: result });
-      // db.end();
     });
   });
 };

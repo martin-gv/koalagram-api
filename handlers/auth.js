@@ -1,12 +1,23 @@
-const db = require("../db");
+// const db = require("../db");
+const mysql = require("mysql");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const config = {
+  host: "us-cdbr-iron-east-01.cleardb.net",
+  user: "b57e642d15cd4c",
+  password: "76ca1458",
+  database: "heroku_d169760d6be1801"
+};
+
 const getUserLikes = async function(userID) {
   return new Promise((resolve, reject) => {
-    sqlLikes = "SELECT * FROM likes WHERE user_id = ?";
-    db.query(sqlLikes, [[userID]], (err, result) => {
+    var db = mysql.createConnection(config);
+    db.connect();
+    sql = "SELECT * FROM likes WHERE user_id = ?";
+    db.query(sql, [[userID]], (err, result) => {
       if (err) reject(err);
+      db.end();
       resolve(result);
     });
   });
@@ -61,6 +72,8 @@ exports.login = async (req, res, next) => {
     const { token } = req.body;
     if (req.body.token) {
       const { username } = jwt.verify(token, process.env.SECRET_KEY);
+      var db = mysql.createConnection(config);
+      db.connect();
       db.query(sql, [[username]], async (err, result) => {
         if (err) {
           next(err);
@@ -68,11 +81,14 @@ exports.login = async (req, res, next) => {
           const user = result[0];
           user.likes = await getUserLikes(user.id);
           res.status(200).json({ user });
+          db.end();
         }
       });
     } else {
       const { username, password } = req.body.user;
       // Get user by username and check password
+      var db = mysql.createConnection(config);
+      db.connect();
       db.query(sql, [[username]], async (err, result) => {
         if (err) {
           next(err);
@@ -92,6 +108,7 @@ exports.login = async (req, res, next) => {
               );
               user.likes = await getUserLikes(user.id);
               res.status(200).json({ user, token });
+              db.end();
             } else {
               next({ message: "Incorrect password" });
             }
