@@ -22,12 +22,21 @@ const mysql = require("mysql");
 //   };
 // }
 
-const connection = mysql.createPool({
-  connectionLimit: 100,
+// const connection = mysql.createPool({
+//   connectionLimit: 100,
+//   host: "us-cdbr-iron-east-01.cleardb.net",
+//   user: "b57e642d15cd4c",
+//   password: "76ca1458",
+//   database: "heroku_d169760d6be1801"
+// });
+
+var connection = mysql.createConnection({
   host: "us-cdbr-iron-east-01.cleardb.net",
   user: "b57e642d15cd4c",
   password: "76ca1458",
   database: "heroku_d169760d6be1801"
 });
+
+connection.connect();
 
 module.exports = connection;

@@ -1,4 +1,5 @@
 const db = require("../db");
+const { query } = require("../helpers/database");
 
 exports.createComment = async (req, res, next) => {
   try {

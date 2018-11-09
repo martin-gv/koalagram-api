@@ -5,3 +5,6 @@
 
 # saved images
 /images
+
+# env variables
+.env
