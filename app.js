@@ -45,7 +45,13 @@ const fileFilter = (req, file, cb) => {
 
 app.use(cors());
 app.use(bodyParser.json({ limit: "5mb" }));
-app.use(multer({ storage: imageStorage, fileFilter }).single("imageFile"));
+app.use(
+  multer({
+    storage: imageStorage,
+    fileFilter,
+    limits: { fileSize: "5mb" }
+  }).single("imageFile")
+);
 app.use("/images", express.static("images"));
 
 app.use("/api/auth", authRoutes);
