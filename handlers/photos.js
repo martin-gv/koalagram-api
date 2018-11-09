@@ -23,18 +23,22 @@ exports.getPhotos = async (req, res, next) => {
   LIMIT 30;
   `;
     db.query(sql, async (err, result) => {
-      if (err) {
+      try {
+        if (err) {
+          next(err);
+        } else {
+          const allComments = await Promise.all(
+            result.map(x => getPhotoComments(x.id))
+          );
+          const withComments = result.map(x => {
+            const match = allComments.find(y => y.id === x.id);
+            x.comments = match.comments;
+            return x;
+          });
+          res.status(200).json({ photos: withComments });
+        }
+      } catch (err) {
         next(err);
-      } else {
-        const allComments = await Promise.all(
-          result.map(x => getPhotoComments(x.id))
-        );
-        const withComments = result.map(x => {
-          const match = allComments.find(y => y.id === x.id);
-          x.comments = match.comments;
-          return x;
-        });
-        res.status(200).json({ photos: withComments });
       }
     });
   } catch (err) {
