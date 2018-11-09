@@ -36,6 +36,7 @@ exports.getPhotos = async (req, res, next) => {
             return x;
           });
           res.status(200).json({ photos: withComments });
+          db.end();
         }
       } catch (err) {
         next(err);
