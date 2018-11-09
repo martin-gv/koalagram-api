@@ -2,7 +2,7 @@ const mysql = require("mysql");
 
 let connectionOptions = {};
 
-if (process.env.HOST === "localhost") {
+if (process.env.HOST && process.env.HOST === "localhost") {
   connectionOptions = {
     connectionLimit: 100,
     host: "localhost",
