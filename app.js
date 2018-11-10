@@ -61,19 +61,6 @@ app.use("/api/likes", loginRequired, likeRoutes);
 app.use("/api/comments", loginRequired, commentRoutes);
 app.use("/api/sample-data", sampleDataRoutes);
 
-// Create DB
-// app.get("/create_db", (req, res, next) => {
-//   let sql = "CREATE DATABASE koalagram";
-//   db.query(sql, (err, result) => {
-//     if (err) {
-//       next(err);
-//     } else {
-//       console.log(result);
-//       res.send("Database created");
-//     }
-//   });
-// });
-
 app.use(errorHandler);
 
 app.listen(PORT, () => console.log("Server starting! 🖥💻🔥"));
