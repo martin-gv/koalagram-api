@@ -117,7 +117,7 @@ exports.postNewPhoto = async (req, res, next) => {
 
     if (!image) next({ message: "No image file uploaded" });
 
-    const insertData = [image.path, id];
+    const insertData = [image.location, id];
     const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
 
     var db = mysql.createConnection(config);
