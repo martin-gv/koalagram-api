@@ -1,4 +1,3 @@
-// const db = require("../db");
 const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
