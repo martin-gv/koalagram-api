@@ -18,9 +18,8 @@ const likeRoutes = require("./routes/likes");
 const commentRoutes = require("./routes/comments");
 const sampleDataRoutes = require("./routes/sampleData");
 
-axios.defaults.headers.common["Authorization"] =
-  "Client-ID 98717389339ce6cdfce858cdd027842492d83226dcfe0887aba5e606ca8d19de";
-// "Client-ID " + process.env.UNSPLASH;
+// axios.defaults.headers.common["Authorization"] =
+//   "Client-ID 98717389339ce6cdfce858cdd027842492d83226dcfe0887aba5e606ca8d19de";
 
 const imageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
