@@ -111,13 +111,12 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
 
 exports.postNewPhoto = async (req, res, next) => {
   try {
-    const { comment } = req.body;
+    const { comment, imageUrl } = req.body;
     const { id } = res.locals.tokenPayload;
-    const image = req.file;
+    // const image = req.file;
+    // if (!image) next({ message: "No image file uploaded" });
 
-    if (!image) next({ message: "No image file uploaded" });
-
-    const insertData = [image.location, id];
+    const insertData = [imageUrl, id];
     const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
 
     var db = mysql.createConnection(config);
@@ -129,7 +128,7 @@ exports.postNewPhoto = async (req, res, next) => {
     if (comment) {
       const sql =
         "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-      const commentResult = await query(sql, [[[photoID, id, comment]]], db);
+      await query(sql, [[[photoID, id, comment]]], db);
     }
 
     const newPhotoSql = `
