@@ -74,7 +74,6 @@ exports.login = async (req, res, next) => {
       // Get user by username and check password
       const connection = db();
       connection.connect();
-      connection.connect();
       connection.query(sql, [[username]], async (err, result) => {
         if (err) {
           connection.end();
