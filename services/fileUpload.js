@@ -18,7 +18,6 @@ const fileFilter = (req, file, cb) => {
   ) {
     cb(null, true);
   } else {
-    // cb(null, false);
     cb(new Error("Invalid file type. Only JPEG or PNG allowed."), false);
   }
 };
@@ -30,8 +29,7 @@ var upload = multer({
     bucket: "test-node-koalagram-server-mg",
     acl: "public-read",
     metadata: function(req, file, cb) {
-      cb(null, { fieldName: "TESTING_META_DATA" });
-      // cb(null, { fieldName: file.fieldname });
+      cb(null, { fieldName: file.fieldname });
     },
     key: function(req, file, cb) {
       cb(null, Date.now().toString());

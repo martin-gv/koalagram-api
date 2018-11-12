@@ -1,13 +1,7 @@
 const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
-
-const config = {
-  host: "us-cdbr-iron-east-01.cleardb.net",
-  user: "b57e642d15cd4c",
-  password: "76ca1458",
-  database: "heroku_d169760d6be1801"
-};
+const db = require("../db");
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -50,9 +44,12 @@ exports.getUserPhotos = async (req, res, next) => {
       GROUP BY photos.id
       ORDER BY photos.id DESC;
       `;
-    const photos = await query(sql, [[username]]);
+
+    const connection = db();
+    connection.connect();
+    const photos = await query(connection, sql, [[username]]);
     const allComments = await Promise.all(
-      photos.map(x => getPhotoComments(x.id))
+      photos.map(x => getPhotoComments(x.id, connection))
     );
     const withComments = photos.map(x => {
       const match = allComments.find(y => y.id === x.id);
@@ -61,7 +58,8 @@ exports.getUserPhotos = async (req, res, next) => {
     });
     const sqlUser =
       "SELECT id, username, profile_image_url, bio   FROM users WHERE username = ?";
-    const user = await query(sqlUser, [[username]]);
+    const user = await query(connection, sqlUser, [[username]]);
+    connection.end();
     res.status(200).json({ user, photos: withComments });
   } catch (err) {
     next(err);
@@ -94,15 +92,18 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
       GROUP BY likes.photo_id
       ORDER BY photos.id DESC;
     `;
-    const photos = await query(sql, [[username]]);
+    const connection = db();
+    connection.connect();
+    const photos = await query(connection, sql, [[username]]);
     const allComments = await Promise.all(
-      photos.map(x => getPhotoComments(x.id))
+      photos.map(x => getPhotoComments(x.id, connection))
     );
     const withComments = photos.map(x => {
       const match = allComments.find(y => y.id === x.id);
       x.comments = match.comments;
       return x;
     });
+    connection.end();
     res.status(200).json({ photos: withComments });
   } catch (err) {
     next(err);
@@ -113,22 +114,20 @@ exports.postNewPhoto = async (req, res, next) => {
   try {
     const { comment, imageUrl } = req.body;
     const { id } = res.locals.tokenPayload;
-    // const image = req.file;
-    // if (!image) next({ message: "No image file uploaded" });
 
     const insertData = [imageUrl, id];
     const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
 
-    var db = mysql.createConnection(config);
-    db.connect();
+    const connection = db();
+    connection.connect();
 
-    const result = await query(sql, [[insertData]], db);
+    const result = await query(connection, sql, [[insertData]]);
     const photoID = result.insertId;
 
     if (comment) {
       const sql =
         "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-      await query(sql, [[[photoID, id, comment]]], db);
+      await query(connection, sql, [[[photoID, id, comment]]]);
     }
 
     const newPhotoSql = `
@@ -144,11 +143,11 @@ exports.postNewPhoto = async (req, res, next) => {
       INNER JOIN users
       ON photos.user_id = users.id
       AND photos.id = ? ;`;
-    const newPhotoResult = await query(newPhotoSql, [[photoID]], db);
-    const comments = await getPhotoComments(photoID, db);
+    const newPhotoResult = await query(connection, newPhotoSql, [[photoID]]);
+    const comments = await getPhotoComments(photoID, connection);
     newPhotoResult[0].comments = comments.comments;
+    connection.end();
     res.status(200).json({ newPhoto: newPhotoResult[0] });
-    db.end();
   } catch (err) {
     next(err);
   }

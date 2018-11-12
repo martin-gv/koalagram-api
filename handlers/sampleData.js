@@ -23,11 +23,11 @@ exports.getUnsplashImages = async (req, res, next) => {
     if (searchTerm && numPages && startPage) {
       const requests = [];
       for (var i = startPage; i <= startPage + numPages - 1; i++) {
-          requests.push(
-            axios.get("https://api.unsplash.com/search/photos/", {
-              params: { query: searchTerm, per_page: 30, page: i }
-            })
-          );
+        requests.push(
+          axios.get("https://api.unsplash.com/search/photos/", {
+            params: { query: searchTerm, per_page: 30, page: i }
+          })
+        );
       }
       const resolvedPromises = await Promise.all(requests);
       const resultsArr = resolvedPromises.map(x => x.data.results);
@@ -72,12 +72,12 @@ exports.createSampleUsers = async (req, res, next) => {
     );
     const sql =
       "INSERT INTO users (username, profile_image_url, bio, password) VALUES ?";
-    db.query(sql, [insertData], (err, result) => {
-      if (err) {
-        next(err);
-      } else {
-        res.status(200).json(result);
-      }
+    const connection = db();
+    connection.connect();
+    connection.query(sql, [insertData], (err, result) => {
+      connection.end();
+      if (err) return next(err);
+      res.status(200).json(result);
     });
   } catch (err) {
     next(err);
@@ -86,8 +86,11 @@ exports.createSampleUsers = async (req, res, next) => {
 
 exports.createSamplePhotos = async (req, res, next) => {
   try {
-    db.query("SELECT * FROM users", async (err, users) => {
+    const connection = db();
+    connection.connect();
+    connection.query("SELECT * FROM users", async (err, users) => {
       if (err) {
+        connection.end();
         next(err);
       } else {
         const images = await getImages("animals");
@@ -101,12 +104,10 @@ exports.createSamplePhotos = async (req, res, next) => {
         });
         const sql =
           "INSERT INTO photos (image_url, user_id, created_at) VALUES ?";
-        db.query(sql, [insertData.reverse()], (err, result) => {
-          if (err) {
-            next(err);
-          } else {
-            res.status(200).json(result);
-          }
+        connection.query(sql, [insertData.reverse()], (err, result) => {
+          connection.end();
+          if (err) return next(err);
+          res.status(200).json(result);
         });
       }
     });
@@ -117,8 +118,10 @@ exports.createSamplePhotos = async (req, res, next) => {
 
 exports.createSampleComments = async (req, res, next) => {
   try {
-    photos = await query("SELECT * FROM photos");
-    users = await query("SELECT * FROM users");
+    const connection = db();
+    connection.connect();
+    photos = await query(connection, "SELECT * FROM photos");
+    users = await query(connection, "SELECT * FROM users");
     const commentsByPhotoArrays = photos.map(x => {
       const numComments = Math.floor(Math.random() * 5);
       const commentsForThisPhoto = [];
@@ -135,7 +138,8 @@ exports.createSampleComments = async (req, res, next) => {
     const insertData = flattenArray(commentsByPhotoArrays);
     const sql =
       "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-    const newComments = await query(sql, [insertData]);
+    const newComments = await query(connection, sql, [insertData]);
+    connection.end();
     res.status(200).json(newComments);
   } catch (err) {
     next(err);
@@ -157,8 +161,10 @@ function randomUniqueUsers(num, users, arr) {
 
 exports.createSampleLikes = async (req, res, next) => {
   try {
-    photos = await query("SELECT * FROM photos");
-    users = await query("SELECT * FROM users");
+    const connection = db();
+    connection.connect();
+    photos = await query(connection, "SELECT * FROM photos");
+    users = await query(connection, "SELECT * FROM users");
     const likesByPhotoArrays = photos.map(x => {
       const numOfLikes = Math.floor(Math.random() * 12);
       const likesForThisPhoto = [];
@@ -172,7 +178,8 @@ exports.createSampleLikes = async (req, res, next) => {
     });
     const insertData = flattenArray(likesByPhotoArrays);
     const sql = "INSERT INTO likes (photo_id, user_id) VALUES ?";
-    const newLikes = await query(sql, [insertData]);
+    const newLikes = await query(connection, sql, [insertData]);
+    connection.end();
     res.status(200).json(newLikes);
   } catch (err) {
     next(err);

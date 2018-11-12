@@ -1,15 +1,19 @@
-const db = require("../db");
-
-exports.query = async (sql, insertData, db) => {
+exports.query = async (connection, sql, insertData) => {
   return new Promise((resolve, reject) => {
     if (insertData) {
-      db.query(sql, insertData, (err, result) => {
-        if (err) reject(err);
+      connection.query(sql, insertData, (err, result) => {
+        if (err) {
+          connection.end();
+          reject(err);
+        }
         resolve(result);
       });
     } else {
-      db.query(sql, (err, result) => {
-        if (err) reject(err);
+      connection.query(sql, (err, result) => {
+        if (err) {
+          connection.end();
+          reject(err);
+        }
         resolve(result);
       });
     }

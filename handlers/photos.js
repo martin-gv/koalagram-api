@@ -1,13 +1,6 @@
-const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
-
-const config = {
-  host: "us-cdbr-iron-east-01.cleardb.net",
-  user: "b57e642d15cd4c",
-  password: "76ca1458",
-  database: "heroku_d169760d6be1801"
-};
+const db = require("../db");
 
 exports.getPhotos = async (req, res, next) => {
   try {
@@ -29,23 +22,24 @@ exports.getPhotos = async (req, res, next) => {
   ORDER BY photos.id DESC
   LIMIT 30;
   `;
-    var db = mysql.createConnection(config);
-    db.connect();
-    db.query(sql, async (err, result) => {
+    const connection = db();
+    connection.connect();
+    connection.query(sql, async (err, result) => {
       try {
         if (err) {
+          connection.end();
           next(err);
         } else {
           const allComments = await Promise.all(
-            result.map(x => getPhotoComments(x.id, db))
+            result.map(x => getPhotoComments(x.id, connection))
           );
           const withComments = result.map(x => {
             const match = allComments.find(y => y.id === x.id);
             x.comments = match.comments;
             return x;
           });
+          connection.end();
           res.status(200).json({ photos: withComments });
-          db.end();
         }
       } catch (err) {
         next(err);
@@ -79,15 +73,18 @@ exports.getPhotosByHashtag = async (req, res, next) => {
     GROUP BY photos.id
     ORDER BY photos.id DESC;
     `;
-    const photos = await query(sql);
+    const connection = db();
+    connection.connect();
+    const photos = await query(connection, sql);
     const allComments = await Promise.all(
-      photos.map(x => getPhotoComments(x.id))
+      photos.map(x => getPhotoComments(x.id, connection))
     );
     const withComments = photos.map(x => {
       const match = allComments.find(y => y.id === x.id);
       x.comments = match.comments;
       return x;
     });
+    connection.end();
     res.status(200).json({ photos: withComments });
   } catch (err) {
     next(err);

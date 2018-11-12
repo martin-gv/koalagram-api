@@ -1,27 +1,19 @@
-// const db = require("../db");
-const mysql = require("mysql");
-
-const config = {
-  host: "us-cdbr-iron-east-01.cleardb.net",
-  user: "b57e642d15cd4c",
-  password: "76ca1458",
-  database: "heroku_d169760d6be1801"
-};
+const db = require("../db");
 
 exports.createComment = async (req, res, next) => {
   try {
     const { photoID, userID, comment } = req.body;
     const sql =
       "INSERT INTO comments (photo_id, user_id, comment_text) VALUES ?";
-    db.query(
+    const connection = db();
+    connection.connect();
+    connection.query(
       sql,
       [[[photoID, userID, comment.slice(0, 255)]]],
       (err, result) => {
-        if (err) {
-          next(err);
-        } else {
-          res.status(200).json(result);
-        }
+        connection.end();
+        if (err) return next(err);
+        res.status(200).json(result);
       }
     );
   } catch (err) {
@@ -37,7 +29,7 @@ exports.deleteComment = async (req, res, next) => {
   }
 };
 
-exports.getPhotoComments = async (photoID, db) => {
+exports.getPhotoComments = async (photoID, connection) => {
   return new Promise((resolve, reject) => {
     sql = `
     SELECT
@@ -52,8 +44,11 @@ exports.getPhotoComments = async (photoID, db) => {
    ON users.id = comments.user_id
    WHERE comments.photo_id = ?;
     `;
-    db.query(sql, [[photoID]], (err, result) => {
-      if (err) reject(err);
+    connection.query(sql, [[photoID]], (err, result) => {
+      if (err) {
+        connection.end();
+        reject(err);
+      }
       resolve({ id: photoID, comments: result });
     });
   });
