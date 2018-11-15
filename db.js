@@ -9,4 +9,11 @@ const config = {
 
 var connection = mysql.createConnection.bind(null, config);
 
+const dbConnection = () => {
+  const newConnection = mysql.createConnection(config);
+  newConnection.connect();
+  return newConnection;
+};
+
 module.exports = connection;
+module.exports.dbConnection = dbConnection;

@@ -2,24 +2,15 @@ const express = require("express");
 const aws = require("aws-sdk");
 const router = express.Router();
 
-aws.config.region = "ca-central-1";
-// const upload = require("../services/fileUpload");
-// const singleUpload = upload.single("image");
+aws.config.region = process.env.AWS_REGION;
 
-// router.post("/", function(req, res, next) {
-//   singleUpload(req, res, function(err) {
-//     if (err) return next(err);
-//     return res.json({ imageUrl: req.file.location });
-//   });
-// });
-
-// get signature for uploading to S3
+// Returns signature for uploading directly to S3
 router.get("/", function(req, res, next) {
   const s3 = new aws.S3();
   const fileName = req.query.fileName;
   const fileType = req.query.fileType;
   const s3Params = {
-    Bucket: process.env.S3_BUCKET,
+    Bucket: process.env.AWS_S3_BUCKET,
     Key: fileName,
     Expires: 180,
     ContentType: fileType,
@@ -27,13 +18,10 @@ router.get("/", function(req, res, next) {
   };
 
   s3.getSignedUrl("putObject", s3Params, (err, data) => {
-    if (err) {
-      console.log("getSignedUrl", err);
-      return next(err);
-    }
+    if (err) return next(err);
     const returnData = {
       signedRequest: data,
-      url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${fileName}`
+      url: `https://${process.env.AWS_S3_BUCKET}.s3.amazonaws.com/${fileName}`
     };
     res.status(200).json(returnData);
   });

@@ -1,22 +1,21 @@
-const mysql = require("mysql");
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
 const db = require("../db");
+const { dbConnection } = require("../db");
 
 exports.updateUser = async (req, res, next) => {
   try {
-    const { bio } = req.body;
+    const { imageUrl, bio } = req.body;
     const { id } = res.locals.tokenPayload;
-    const image = req.file;
+    let sql = imageUrl
+      ? "UPDATE users SET profile_image_url = ?, bio = ? WHERE id = ?"
+      : "UPDATE users SET bio = ? WHERE id = ?";
+    let insertData = imageUrl ? [[imageUrl], [bio], [id]] : [[bio], [id]];
 
-    let sql = "UPDATE users SET bio = ? WHERE id = ?";
-    let insertData = [[bio], [id]];
-    if (image) {
-      sql = "UPDATE users SET profile_image_url = ?, bio = ? WHERE id = ?";
-      insertData = [[image.path], [bio], [id]];
-    }
-    await query(sql, insertData);
-    res.status(200).json({ image: image ? image.path : null });
+    const connection = dbConnection();
+    await query(connection, sql, insertData);
+    connection.end();
+    res.status(200).json({ image: imageUrl ? imageUrl : "" });
   } catch (err) {
     next(err);
   }
