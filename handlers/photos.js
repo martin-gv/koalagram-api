@@ -1,6 +1,7 @@
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
 const db = require("../db");
+const { getConnection } = require("../db");
 
 exports.getPhotos = async (req, res, next) => {
   try {
@@ -44,6 +45,21 @@ exports.getPhotos = async (req, res, next) => {
       } catch (err) {
         next(err);
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deletePhoto = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const sql = "DELETE FROM photos WHERE id = ?";
+    const connection = getConnection();
+    connection.query(sql, id, (err) => {
+      connection.end();
+      if (err) return next(err);
+      res.sendStatus(200);
     });
   } catch (err) {
     next(err);

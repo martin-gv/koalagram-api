@@ -1,7 +1,7 @@
 const { query } = require("../helpers/database");
 const { getPhotoComments } = require("./comments");
-const db = require("../db");
-const { dbConnection } = require("../db");
+const dbConfig = require("../db");
+const { getConnection } = require("../db");
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -11,8 +11,7 @@ exports.updateUser = async (req, res, next) => {
       ? "UPDATE users SET profile_image_url = ?, bio = ? WHERE id = ?"
       : "UPDATE users SET bio = ? WHERE id = ?";
     let insertData = imageUrl ? [[imageUrl], [bio], [id]] : [[bio], [id]];
-
-    const connection = dbConnection();
+    const connection = getConnection();
     await query(connection, sql, insertData);
     connection.end();
     res.status(200).json({ image: imageUrl ? imageUrl : "" });
@@ -44,7 +43,7 @@ exports.getUserPhotos = async (req, res, next) => {
       ORDER BY photos.id DESC;
       `;
 
-    const connection = db();
+    const connection = dbConfig();
     connection.connect();
     const photos = await query(connection, sql, [[username]]);
     const allComments = await Promise.all(
@@ -91,7 +90,7 @@ exports.getPhotosLikedByUser = async (req, res, next) => {
       GROUP BY likes.photo_id
       ORDER BY photos.id DESC;
     `;
-    const connection = db();
+    const connection = dbConfig();
     connection.connect();
     const photos = await query(connection, sql, [[username]]);
     const allComments = await Promise.all(
@@ -117,7 +116,7 @@ exports.postNewPhoto = async (req, res, next) => {
     const insertData = [imageUrl, id];
     const sql = "INSERT INTO photos (image_url, user_id) VALUES ?";
 
-    const connection = db();
+    const connection = dbConfig();
     connection.connect();
 
     const result = await query(connection, sql, [[insertData]]);
