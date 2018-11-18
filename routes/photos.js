@@ -9,7 +9,7 @@ const {
 } = require("../handlers/photos");
 
 router.route("/").get(getPhotos);
-router.route("/:id").delete(loginRequired, deletePhoto);
+router.route("/:photo_id").delete(loginRequired, deletePhoto);
 router.route("/:hashtag").get(getPhotosByHashtag);
 
 module.exports = router;
