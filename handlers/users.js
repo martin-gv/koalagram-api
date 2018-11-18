@@ -24,6 +24,7 @@ exports.updateUser = async (req, res, next) => {
 exports.getUserPhotos = async (req, res, next) => {
   try {
     const { username } = req.params;
+    const { offset } = req.query;
     const sql = `
       SELECT
          photos.id,
@@ -40,11 +41,11 @@ exports.getUserPhotos = async (req, res, next) => {
       ON photos.id = likes.photo_id
       WHERE users.username = ?
       GROUP BY photos.id
-      ORDER BY photos.id DESC;
-      `;
-
-    const connection = dbConfig();
-    connection.connect();
+      ORDER BY photos.id DESC
+      LIMIT 15
+      OFFSET ${offset}
+      ;`;
+    const connection = getConnection();
     const photos = await query(connection, sql, [[username]]);
     const allComments = await Promise.all(
       photos.map(x => getPhotoComments(x.id, connection))

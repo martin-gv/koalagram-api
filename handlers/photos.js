@@ -69,6 +69,7 @@ exports.deletePhoto = async (req, res, next) => {
 exports.getPhotosByHashtag = async (req, res, next) => {
   try {
     const { hashtag } = req.params;
+    const { offset } = req.query;
     const sql = `
     SELECT
       photos.id,
@@ -87,10 +88,11 @@ exports.getPhotosByHashtag = async (req, res, next) => {
     LEFT JOIN likes
     ON photos.id = likes.photo_id
     GROUP BY photos.id
-    ORDER BY photos.id DESC;
-    `;
-    const connection = db();
-    connection.connect();
+    ORDER BY photos.id DESC
+    LIMIT 15
+    OFFSET ${offset}
+    ;`;
+    const connection = getConnection();
     const photos = await query(connection, sql);
     const allComments = await Promise.all(
       photos.map(x => getPhotoComments(x.id, connection))
