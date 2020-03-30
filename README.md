@@ -4,4 +4,4 @@ Node/Express REST API server for the **[Koalagram app](https://github.com/martin
 
 ### Image uploads
 
-Requests to upload an image are first authenticated, then directly uploaded from the front-end to Amazon S3. No images are stored on the server.
+Requests to upload an image are first authenticated, then directly uploaded from the _front-end_ to Amazon S3. No images are stored on the server.
